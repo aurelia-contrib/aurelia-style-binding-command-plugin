@@ -1,0 +1,10 @@
+.vscode
+.rollupcache
+node_modules
+src
+test
+.editorconfig
+.gitignore
+.npmignore
+tsconfig.json
+tslint.json

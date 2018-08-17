@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "baseUrl": "src",
+    "module": "es2015",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "stripInternal": true,
+    "lib": [
+      "dom",
+      "es2017"
+    ]
+  }
+}
