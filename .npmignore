@@ -6,5 +6,7 @@ test
 .editorconfig
 .gitignore
 .npmignore
+karma.conf.js
+rollup.config.js
 tsconfig.json
 tslint.json
