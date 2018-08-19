@@ -51,4 +51,4 @@
   <div style.background-color='background'></div>
   ```
 
-  The former is predictable, it follows the `[attribute-name].[binding-command]=[expression]` pattern that you see everywhere in an Aurelia application. The later is a more natural syntax for reading, as `background-color` is a property of `style` property of the element. If you have any argument why it should be supported, please file an issue.
+  The former is predictable, it follows the `[attribute-name].[binding-command]=[expression]` pattern that you see everywhere in an Aurelia application. The later is a more natural syntax for reading, as `background-color` is a property of `style` property of the element. If you think why it should be supported, please help file an issue.

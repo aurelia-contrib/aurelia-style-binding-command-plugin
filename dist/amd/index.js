@@ -49,7 +49,8 @@ define('aurelia-style-binding-command-plugin', ['exports', 'aurelia-binding', 'a
           if (!this.mo) {
               this.mo = aureliaPal.DOM.createMutationObserver(function () { return _this.syncValue(); });
               this.mo.observe(this.element, {
-                  attributes: true
+                  attributes: true,
+                  attributeFilter: ['style']
               });
           }
       };
@@ -87,6 +88,7 @@ define('aurelia-style-binding-command-plugin', ['exports', 'aurelia-binding', 'a
       };
       return StyleExpression;
   }());
+  StyleExpression.prototype.discrete = true;
   var StyleBinding = /** @class */ (function () {
       function StyleBinding(observerLocator, sourceExpression, target, targetProperty, mode, lookupFunctions) {
           this.target = target;
@@ -139,12 +141,15 @@ define('aurelia-style-binding-command-plugin', ['exports', 'aurelia-binding', 'a
           if (this.sourceExpression.bind) {
               this.sourceExpression.bind(this, source, this.lookupFunctions);
           }
-          var styleObserver = this.target.__style_observer__;
+          var _a = this, target = _a.target, targetProperty = _a.targetProperty;
+          var styleObserversLookup = target.__style_observer__ || (target.__style_observer__ = {});
+          var targetCssRule = hyphenate(targetProperty);
+          var styleObserver = styleObserversLookup[targetCssRule];
           if (styleObserver) {
               this.styleObserver = styleObserver;
           }
           else {
-              this.styleObserver = this.target.__style_observer__ = new InlineStyleObserver(this.target, this.targetProperty);
+              styleObserver = this.styleObserver = styleObserversLookup[targetCssRule] = new InlineStyleObserver(target, targetProperty);
           }
           var mode = this.mode;
           if (mode !== aureliaBinding.bindingMode.fromView) {
@@ -159,10 +164,10 @@ define('aurelia-style-binding-command-plugin', ['exports', 'aurelia-binding', 'a
           }
           else if (mode === aureliaBinding.bindingMode.twoWay) {
               this.sourceExpression.connect(this, source);
-              this.styleObserver.subscribe(styleObserverContext, this);
+              styleObserver.subscribe(styleObserverContext, this);
           }
           else if (mode === aureliaBinding.bindingMode.fromView) {
-              this.styleObserver.subscribe(styleObserverContext, this);
+              styleObserver.subscribe(styleObserverContext, this);
           }
       };
       StyleBinding.prototype.unbind = function () {

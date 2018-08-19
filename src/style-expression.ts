@@ -1,6 +1,6 @@
 import { Binding, BindingBehavior, bindingMode, connectable, enqueueBindingConnect, Expression, Scope, sourceContext, ObserverLocator } from 'aurelia-binding';
 import { InlineStyleObserver } from './inline-style-observer';
-import { IStyleObservableElement, styleObserverContext } from './shared';
+import { IStyleObservableElement, styleObserverContext, hyphenate } from './shared';
 
 /**@internal */
 declare module 'aurelia-binding' {
@@ -11,6 +11,11 @@ declare module 'aurelia-binding' {
 }
 
 export class StyleExpression {
+
+  /**
+   * Signal template compiler this is a normal expression
+   */
+  discrete: boolean;
 
   constructor(
     private observerLocator: ObserverLocator,
@@ -33,6 +38,8 @@ export class StyleExpression {
     );
   }
 }
+
+StyleExpression.prototype.discrete = true;
 
 export interface StyleBinding {
   _version: number;
@@ -115,11 +122,14 @@ export class StyleBinding {
       (this.sourceExpression as BindingBehavior).bind(this, source, this.lookupFunctions);
     }
 
-    const styleObserver = this.target.__style_observer__;
+    const { target, targetProperty } = this;
+    const styleObserversLookup = target.__style_observer__ || (target.__style_observer__ = {});
+    const targetCssRule = hyphenate(targetProperty);
+    let styleObserver: InlineStyleObserver = styleObserversLookup[targetCssRule];
     if (styleObserver) {
       this.styleObserver = styleObserver;
     } else {
-      this.styleObserver = this.target.__style_observer__ = new InlineStyleObserver(this.target, this.targetProperty);
+      styleObserver = this.styleObserver = styleObserversLookup[targetCssRule] = new InlineStyleObserver(target, targetProperty);
     }
 
     const mode = this.mode;
@@ -134,9 +144,9 @@ export class StyleBinding {
       enqueueBindingConnect(this as Binding);
     } else if (mode === bindingMode.twoWay) {
       this.sourceExpression.connect(this, source);
-      this.styleObserver.subscribe(styleObserverContext, this);
+      styleObserver.subscribe(styleObserverContext, this);
     } else if (mode === bindingMode.fromView) {
-      this.styleObserver.subscribe(styleObserverContext, this);
+      styleObserver.subscribe(styleObserverContext, this);
     }
   }
 

@@ -7,6 +7,10 @@ export declare class StyleExpression {
     private targetProperty;
     private mode;
     private lookupFunctions;
+    /**
+     * Signal template compiler this is a normal expression
+     */
+    discrete: boolean;
     constructor(observerLocator: ObserverLocator, sourceExpression: Expression, targetProperty: string, mode: bindingMode, lookupFunctions: any);
     createBinding(target: Element): StyleBinding;
 }

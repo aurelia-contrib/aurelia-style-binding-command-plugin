@@ -7,7 +7,7 @@ export interface ICallable {
 }
 
 export interface IStyleObservableElement extends Element {
-  __style_observer__?: InlineStyleObserver;
+  __style_observer__?: Record<string, InlineStyleObserver>;
 }
 
 const hyphenateCache: Record<string, string> = Object.create(null);

@@ -45,7 +45,7 @@ describe('StyleExpression & StyleBinding', () => {
           overrideContext: null
         };
         styleBinding.bind(scope);
-        expect((element as any).__style_observer__).toEqual(styleBinding.styleObserver);
+        expect((element as any).__style_observer__['background-color']).toEqual(styleBinding.styleObserver);
         expect(styleBinding.styleObserver).toEqual(jasmine.any(InlineStyleObserver));
         expect(styleBinding.styleObserver.hasSubscribers()).toBe(false, 'It should have had 0 subscriber');
         expect(element.style.backgroundColor).toBe('rgb(255, 255, 255)');
@@ -98,6 +98,50 @@ describe('StyleExpression & StyleBinding', () => {
       styleBinding.unbind();
       expect(styleBinding.isBound).toBe(false, 'It should have switched `isBound`');
       expect(spy).toHaveBeenCalledWith(styleObserverContext, styleBinding);
+    });
+
+    it('works when there are multiple bindings on same element', (done) => {
+      const expressions = [
+        { rule: 'background-color', expression: 'bg' },
+        { rule: 'width', expression: 'divWidth' },
+        { rule: 'height', expression: 'divHeight' }
+      ].map(e => new StyleExpression(
+        observerLocator,
+        syntaxInterpreter.parser.parse(e.expression),
+        e.rule,
+        bindingMode.toView,
+        resources.lookupFunctions
+      ));
+
+      const bindings = expressions.map(e => e.createBinding(element));
+      const viewModel = {
+        bg: '#000',
+        divWidth: '100px',
+        divHeight: '100px'
+      };
+      const scope: Scope = {
+        bindingContext: viewModel,
+        overrideContext: null
+      };
+      bindings.forEach(b => b.bind(scope));
+      expect(element.style.height).toBe('100px', 'It should have had height 100px');
+      expect(element.style.width).toBe('100px', 'It should have had width 100px');
+      expect(element.style.backgroundColor.replace(/ /g, '')).toBe(
+        'rgb(0,0,0)',
+        'It should have had background black in rgb'
+      );
+      viewModel.bg = '#fff';
+      viewModel.divHeight = '150px';
+      viewModel.divWidth = '120px';
+      setTimeout(() => {
+        expect(element.style.height).toBe('150px', 'It should have had height 100px');
+        expect(element.style.width).toBe('120px', 'It should have had width 100px');
+        expect(element.style.backgroundColor.replace(/ /g, '')).toBe(
+          'rgb(255,255,255)',
+          'It should have had background black in rgb'
+        );
+        done();
+      }, 40);
     });
   });
 });

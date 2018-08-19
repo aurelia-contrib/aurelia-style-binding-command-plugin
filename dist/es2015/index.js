@@ -50,7 +50,8 @@ class InlineStyleObserver {
         if (!this.mo) {
             this.mo = DOM.createMutationObserver(() => this.syncValue());
             this.mo.observe(this.element, {
-                attributes: true
+                attributes: true,
+                attributeFilter: ['style']
             });
         }
     }
@@ -86,6 +87,7 @@ class StyleExpression {
         return new StyleBinding(this.observerLocator, this.sourceExpression, target, this.targetProperty, this.mode, this.lookupFunctions);
     }
 }
+StyleExpression.prototype.discrete = true;
 class StyleBinding {
     constructor(observerLocator, sourceExpression, target, targetProperty, mode, lookupFunctions) {
         this.target = target;
@@ -138,12 +140,15 @@ class StyleBinding {
         if (this.sourceExpression.bind) {
             this.sourceExpression.bind(this, source, this.lookupFunctions);
         }
-        const styleObserver = this.target.__style_observer__;
+        const { target, targetProperty } = this;
+        const styleObserversLookup = target.__style_observer__ || (target.__style_observer__ = {});
+        const targetCssRule = hyphenate(targetProperty);
+        let styleObserver = styleObserversLookup[targetCssRule];
         if (styleObserver) {
             this.styleObserver = styleObserver;
         }
         else {
-            this.styleObserver = this.target.__style_observer__ = new InlineStyleObserver(this.target, this.targetProperty);
+            styleObserver = this.styleObserver = styleObserversLookup[targetCssRule] = new InlineStyleObserver(target, targetProperty);
         }
         const mode = this.mode;
         if (mode !== bindingMode.fromView) {
@@ -158,10 +163,10 @@ class StyleBinding {
         }
         else if (mode === bindingMode.twoWay) {
             this.sourceExpression.connect(this, source);
-            this.styleObserver.subscribe(styleObserverContext, this);
+            styleObserver.subscribe(styleObserverContext, this);
         }
         else if (mode === bindingMode.fromView) {
-            this.styleObserver.subscribe(styleObserverContext, this);
+            styleObserver.subscribe(styleObserverContext, this);
         }
     }
     unbind() {
