@@ -4,7 +4,7 @@ import { ViewResources } from 'aurelia-templating';
 import { SyntaxInterpreter } from 'aurelia-templating-binding';
 import { InlineStyleObserver } from 'inline-style-observer';
 import { StyleBinding, StyleExpression } from 'style-expression';
-import { styleObserverContext } from 'shared';
+import { styleObserverContext, IStyleObservableElement } from 'shared';
 
 describe('StyleExpression & StyleBinding', () => {
 
@@ -45,7 +45,7 @@ describe('StyleExpression & StyleBinding', () => {
           overrideContext: null
         };
         styleBinding.bind(scope);
-        expect((element as any).__style_observer__['background-color']).toEqual(styleBinding.styleObserver);
+        expect((element as IStyleObservableElement).__style_observer__['background-color']).toEqual(styleBinding.styleObserver);
         expect(styleBinding.styleObserver).toEqual(jasmine.any(InlineStyleObserver));
         expect(styleBinding.styleObserver.hasSubscribers()).toBe(false, 'It should have had 0 subscriber');
         expect(element.style.backgroundColor).toBe('rgb(255, 255, 255)');
@@ -81,6 +81,37 @@ describe('StyleExpression & StyleBinding', () => {
 
         expect(spy).not.toHaveBeenCalled();
         expect(styleBinding.styleObserver.hasSubscribers()).toBe(false, 'It should have had 0 subscriber');
+      });
+
+      it('setup .style-from-view', (done) => {
+        const styleBindings = [
+          { name: 'backgroundColor', value: 'red', viewModelProp: 'bg' },
+          { name: 'color', value: 'blue', viewModelProp: 'color' }
+        ].map(c => {
+          styleExpression = syntaxInterpreter['style-from-view'](resources, element, { attrValue: c.viewModelProp, attrName: c.name });
+          return styleExpression.createBinding(element);
+        });
+        const scope: Scope = {
+          bindingContext: { bg: '#fff' },
+          overrideContext: null
+        };
+        element.style.backgroundColor = 'red';
+        styleBindings.forEach(b => {
+          b.bind(scope);
+          expect(b.styleObserver.hasSubscribers()).toBe(true, 'It should have had atleast 1 subscriber');
+        });
+
+        expect(scope.bindingContext.bg).toBe('red', 'It should have synced value to view model value from element');
+        expect(scope.bindingContext.color).toBeUndefined('It should have left property alone');
+        element.style.backgroundColor = 'white';
+        expect(scope.bindingContext.bg).not.toBe('white', 'It should have only got value from mutation observer');
+        setTimeout(() => {
+          expect(scope.bindingContext.bg).toBe('white', 'It should have had updated value from observer');
+          styleBindings.forEach((b) => {
+            expect(b.styleObserver.removeSubscriber(styleObserverContext, b)).toBe(true, 'It should be able to remove binding subscriber');
+          });
+          done();
+        }, 20);
       });
     });
 

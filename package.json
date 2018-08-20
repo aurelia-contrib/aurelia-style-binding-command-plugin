@@ -1,5 +1,5 @@
 {
-  "version": "0.1.2",
+  "version": "0.1.3",
   "name": "aurelia-style-binding-command-plugin",
   "main": "dist/commonjs/index.js",
   "typings": "dist/types/index.d.ts",

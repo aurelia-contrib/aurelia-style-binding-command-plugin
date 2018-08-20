@@ -133,7 +133,18 @@ export class StyleBinding {
     }
 
     const mode = this.mode;
-    if (mode !== bindingMode.fromView) {
+    // In from-view bindind mode, element inline style should be synced to view model
+    // during initialization phase. Only do so if there is that rule in inline style
+    // Not simply resolving via getPropertyValue as it normalizes everything to an empty string
+    // regardless the property presence
+    if (mode === bindingMode.fromView) {
+      if (target.hasAttribute('style')) {
+        const ruleValue = this.findRuleValue((target as HTMLElement).style, targetCssRule);
+        if (ruleValue !== null) {
+          this.updateSource(ruleValue);
+        }
+      }
+    } else {
       const value = this.sourceExpression.evaluate(source, this.lookupFunctions);
       this.updateTarget(value);
     }
@@ -173,6 +184,19 @@ export class StyleBinding {
       this.updateTarget(value);
     }
     this.sourceExpression.connect(this as Binding, this.source);
+  }
+
+  /**
+   * @internal
+   * Used to initially look for css value of a css rule
+   */
+  private findRuleValue(style: CSSStyleDeclaration, prop: string) {
+    for (let i = 0, ii = style.length; ii > i; ++i) {
+      if (style[i] === prop) {
+        return style.getPropertyValue(prop);
+      }
+    }
+    return null;
   }
 }
 

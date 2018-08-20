@@ -35,7 +35,7 @@
 
 ## How it works
 
-  * The `.style-*` binding commands instruct Aurelia to observe view model and assign new value to css property, like standard behavior of an Aurelia Binding. `.style-from-view` and `.style-two-way` work via `MutationObserver`, that detects change on `style` attribute of observed element.
+  * The `.style-*` binding commands instruct Aurelia to observe view model and assign new value to css property, like standard behavior of an Aurelia binding. `.style-from-view` and `.style-two-way` work via `MutationObserver`, that detects change on `style` attribute of observed element.
 
 ## Possible extension
 
